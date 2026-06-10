@@ -7,7 +7,7 @@
 #   - Puerto interno UDP == puerto externo (el proxy de Fly no reescribe puertos destino).
 #   - Una sola máquina (fly scale count 1): señalización y flujo UDP deben caer juntas.
 
-app = "face-capture-poc"
+app = "test-udp"
 primary_region = "eze"
 
 [build]
