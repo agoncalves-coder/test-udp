@@ -116,6 +116,9 @@ export default function App() {
       // 4. Stats del cliente por HTTP confiable (señal de fin autoritativa).
       setPhase('uploading');
       const cam = cameraRef.current;
+      const rtcStats = transport.stats
+        ? await transport.stats().catch(() => undefined)
+        : undefined;
       await postClientStats(created.sessionId, {
         userAgent: navigator.userAgent,
         presetId: preset.id,
@@ -131,6 +134,7 @@ export default function App() {
         channel: transport.kind,
         fallbackReason: fallbackReason ?? '',
         features,
+        rtcStats,
       }).catch(() => {
         // el END_OF_CAPTURE por el canal ya disparó la consolidación
       });

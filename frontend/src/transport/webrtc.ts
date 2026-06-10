@@ -57,11 +57,37 @@ export async function connectWebRTC(opts: WebRTCOptions): Promise<ChunkTransport
         dc.close();
         pc.close();
       },
+      async stats() {
+        return summarizeStats(await pc.getStats());
+      },
     };
   } catch (e) {
     pc.close();
     throw e;
   }
+}
+
+// Resumen compacto de getStats() para client-stats (PRD §7): par de candidatos
+// activo (RTT, tipos) y contadores del DataChannel.
+function summarizeStats(report: RTCStatsReport): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  report.forEach((s) => {
+    const stat = s as Record<string, unknown>;
+    if (stat.type === 'candidate-pair' && stat.state === 'succeeded' && stat.nominated) {
+      out.rttMs =
+        typeof stat.currentRoundTripTime === 'number' ? stat.currentRoundTripTime * 1000 : null;
+      out.availableOutgoingBitrate = stat.availableOutgoingBitrate ?? null;
+      out.pairBytesSent = stat.bytesSent ?? null;
+    }
+    if (stat.type === 'local-candidate' && stat.candidateType) {
+      out.localCandidateType = stat.candidateType;
+    }
+    if (stat.type === 'data-channel') {
+      out.dcMessagesSent = stat.messagesSent ?? null;
+      out.dcBytesSent = stat.bytesSent ?? null;
+    }
+  });
+  return out;
 }
 
 function waitIceGathering(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {

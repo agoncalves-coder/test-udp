@@ -4,6 +4,8 @@
 import type { Preset } from '../experiments/types';
 import { Codec, Flag } from '../protocol/header';
 import type { Features } from './features';
+import { RawGrayEncoder } from './rawgray';
+import { WebCodecsH264Encoder } from './webcodecs';
 
 export interface EncodedFrame {
   data: Uint8Array;
@@ -25,10 +27,15 @@ export function pickEncoder(preset: Preset, features: Features): FrameEncoder {
       // Si toBlob no produce WebP real, el encoder lo detecta por blob.type y
       // reporta codec=0 (riesgo del PRD §10).
       return new CanvasBlobEncoder(preset, features, 'image/webp');
+    case Codec.RawGray:
+      return new RawGrayEncoder(preset);
+    case Codec.H264:
+      if (features.webcodecsH264 === 'none') {
+        throw new Error('WebCodecs H.264 no disponible en este dispositivo');
+      }
+      return new WebCodecsH264Encoder(preset, features.webcodecsH264);
     default:
-      // E8 (WebCodecs) y E9 (raw gray) llegan en F3; el selector los oculta
-      // mientras detectFeatures reporte que no están disponibles.
-      throw new Error(`codec ${preset.codec} no implementado todavía`);
+      throw new Error(`codec ${preset.codec} desconocido`);
   }
 }
 

@@ -9,6 +9,8 @@ export interface ChunkTransport {
   send(chunk: Uint8Array): void;
   sendControl(msg: ControlMessage): void;
   close(): void;
+  /** Resumen de RTCPeerConnection.getStats() si el canal lo soporta (PRD §7). */
+  stats?(): Promise<Record<string, unknown>>;
 }
 
 export interface EndOfCapture {

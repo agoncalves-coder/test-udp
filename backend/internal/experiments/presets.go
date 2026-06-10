@@ -36,7 +36,9 @@ var presets = []Preset{
 	{ID: "E6-wifi-max", Label: "320×240 color JPEG q0.7 @15fps (WiFi)", Width: 320, Height: 240, Grayscale: false, Codec: protocol.CodecJPEG, Quality: 0.7, FPS: 15, BitrateKbps: 1500},
 	{ID: "E7-ws-baseline", Label: "Igual a E2 forzando WebSocket (control TCP)", Width: 240, Height: 180, Grayscale: true, Codec: protocol.CodecJPEG, Quality: 0.5, FPS: 10, BitrateKbps: 400, ForceWebSocket: true},
 	{ID: "E8-webcodecs-hw", Label: "320×240 color H.264 hardware (WebCodecs) @10fps", Width: 320, Height: 240, Grayscale: false, Codec: protocol.CodecH264, Quality: 0, FPS: 10, BitrateKbps: 400, RequiresFeature: "webcodecs-h264"},
-	{ID: "E9-raw-gray", Label: "160×120 plano Y crudo sin encode @10fps (WiFi only)", Width: 160, Height: 120, Grayscale: true, Codec: protocol.CodecRawGray, Quality: 0, FPS: 10, BitrateKbps: 1600, WifiOnly: true, RequiresFeature: "mstp"},
+	// E9 sin RequiresFeature: la extracción de luma se hace con un loop entero
+	// sobre getImageData (universal); MSTP solo se reporta en client-stats.
+	{ID: "E9-raw-gray", Label: "160×120 plano Y crudo sin encode @10fps (WiFi only)", Width: 160, Height: 120, Grayscale: true, Codec: protocol.CodecRawGray, Quality: 0, FPS: 10, BitrateKbps: 1600, WifiOnly: true},
 }
 
 // All devuelve una copia de los 9 presets en orden E1..E9.

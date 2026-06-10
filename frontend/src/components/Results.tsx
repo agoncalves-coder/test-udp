@@ -96,6 +96,12 @@ export function Results({ sessionId, channel, capture, onReset }: Props) {
         <dd>{report.latencyP50Ms.toFixed(0)} / {report.latencyP95Ms.toFixed(0)} ms</dd>
         <dt>Bitrate efectivo</dt>
         <dd>{(report.effectiveBitrateBps / 1000).toFixed(0)} kbps</dd>
+        <dt>Bytes/frame promedio</dt>
+        <dd>
+          {report.framesComplete > 0
+            ? `${(report.bytesReceived / 1024 / report.framesComplete).toFixed(1)} KB`
+            : '—'}
+        </dd>
         <dt>Chunks (dup / tardíos)</dt>
         <dd>{report.chunksReceived} ({report.chunksDuplicate} / {report.chunksLate})</dd>
         <dt>Errores de decode</dt>

@@ -9,7 +9,7 @@ export interface Features {
   grayscaleFilter: boolean;
   /** VideoEncoder H.264 disponible: por hardware, solo software, o ausente. */
   webcodecsH264: 'hw' | 'sw' | 'none';
-  /** MediaStreamTrackProcessor disponible (E9 fast-path). */
+  /** MediaStreamTrackProcessor disponible (dato de campo; E9 no lo necesita). */
   mstp: boolean;
 }
 
@@ -17,10 +17,8 @@ export async function detectFeatures(): Promise<Features> {
   return {
     webp: detectWebP(),
     grayscaleFilter: detectGrayscaleFilter(),
-    // TODO(F3): VideoEncoder.isConfigSupported con prefer-hardware → retry
-    // no-preference; hasta entonces E8/E9 quedan ocultos del selector.
-    webcodecsH264: 'none',
-    mstp: false,
+    webcodecsH264: await detectWebCodecsH264(),
+    mstp: 'MediaStreamTrackProcessor' in globalThis,
   };
 }
 
@@ -43,6 +41,43 @@ function detectGrayscaleFilter(): boolean {
   }
   ctx.filter = 'grayscale(1)';
   return ctx.filter === 'grayscale(1)';
+}
+
+// isConfigSupported con prefer-hardware es un requisito DURO en Chrome; si
+// falla se reintenta con no-preference (encoder por software, dato distinto
+// pero válido). Config espejo de E8 (PRD §6).
+async function detectWebCodecsH264(): Promise<'hw' | 'sw' | 'none'> {
+  if (typeof VideoEncoder === 'undefined' || !VideoEncoder.isConfigSupported) {
+    return 'none';
+  }
+  const base: VideoEncoderConfig = {
+    codec: 'avc1.42001f', // H.264 Baseline: máxima compatibilidad de decode
+    width: 320,
+    height: 240,
+    bitrate: 400_000,
+    framerate: 10,
+    avc: { format: 'annexb' },
+    latencyMode: 'realtime',
+  };
+  try {
+    const hw = await VideoEncoder.isConfigSupported({
+      ...base,
+      hardwareAcceleration: 'prefer-hardware',
+    });
+    if (hw.supported) {
+      return 'hw';
+    }
+    const sw = await VideoEncoder.isConfigSupported({
+      ...base,
+      hardwareAcceleration: 'no-preference',
+    });
+    if (sw.supported) {
+      return 'sw';
+    }
+  } catch {
+    // implementaciones viejas tiran en vez de devolver supported:false
+  }
+  return 'none';
 }
 
 /** ¿El preset puede ofrecerse en este dispositivo? */
