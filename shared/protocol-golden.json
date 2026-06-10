@@ -1,0 +1,69 @@
+{
+  "comment": "Vectores golden del protocolo de chunking (PRD §4). Única fuente de verdad: los tests de Go (backend/internal/protocol) y de TS (frontend/src/protocol) consumen este archivo. Header 12 bytes big-endian: magic u16 (0xFACE) | sessionSeq u16 | frameId u16 | chunkIndex u8 | totalChunks u8 | payloadLen u16 | flags u8 | codec u8. Flags: 1=grayscale 2=keyframe 4=lastFrame. Codec: 0=JPEG 1=WebP 2=raw-gray 3=h264-annexb.",
+  "valid": [
+    {
+      "name": "basic-jpeg",
+      "hex": "face01020010020500030500616263",
+      "fields": {
+        "sessionSeq": 258,
+        "frameId": 16,
+        "chunkIndex": 2,
+        "totalChunks": 5,
+        "payloadLen": 3,
+        "flags": 5,
+        "codec": 0
+      },
+      "payloadHex": "616263"
+    },
+    {
+      "name": "extremes-rawgray-allflags",
+      "hex": "facefffffffffeff00040702deadbeef",
+      "fields": {
+        "sessionSeq": 65535,
+        "frameId": 65535,
+        "chunkIndex": 254,
+        "totalChunks": 255,
+        "payloadLen": 4,
+        "flags": 7,
+        "codec": 2
+      },
+      "payloadHex": "deadbeef"
+    },
+    {
+      "name": "h264-keyframe-single-chunk",
+      "hex": "face0001000000010004020300000001",
+      "fields": {
+        "sessionSeq": 1,
+        "frameId": 0,
+        "chunkIndex": 0,
+        "totalChunks": 1,
+        "payloadLen": 4,
+        "flags": 2,
+        "codec": 3
+      },
+      "payloadHex": "00000001"
+    },
+    {
+      "name": "webp-first-of-two",
+      "hex": "face00070003000200050101610a00ff7f",
+      "fields": {
+        "sessionSeq": 7,
+        "frameId": 3,
+        "chunkIndex": 0,
+        "totalChunks": 2,
+        "payloadLen": 5,
+        "flags": 1,
+        "codec": 1
+      },
+      "payloadHex": "610a00ff7f"
+    }
+  ],
+  "invalid": [
+    { "name": "bad-magic", "hex": "dead01020010020500030500616263", "error": "BAD_MAGIC" },
+    { "name": "short-header", "hex": "face010200100205000305", "error": "SHORT_HEADER" },
+    { "name": "len-mismatch", "hex": "face01020010020500ff0500616263", "error": "LENGTH_MISMATCH" },
+    { "name": "zero-total-chunks", "hex": "face01020010020000030500616263", "error": "INVALID_HEADER" },
+    { "name": "index-ge-total", "hex": "face01020010050500030500616263", "error": "INVALID_HEADER" },
+    { "name": "codec-out-of-range", "hex": "face01020010020500030504616263", "error": "INVALID_HEADER" }
+  ]
+}

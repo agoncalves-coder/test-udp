@@ -1,0 +1,18 @@
+# deps / build
+node_modules/
+frontend/dist/
+frontend/.vercel/
+
+# runtime data
+backend/data/
+*.h264
+
+# env / local
+.env
+.env.*
+!.env.example
+!frontend/.env.development
+
+# OS / editor
+Thumbs.db
+.DS_Store
