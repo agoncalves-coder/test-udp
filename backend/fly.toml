@@ -19,9 +19,10 @@ primary_region = "eze"
   STUN_URL = "stun:stun.l.google.com:19302"
   DATA_DIR = "/data"
 
-# MODO TRIAL: sin volumen (los datos viven en disco efímero y se pierden en
-# cada deploy/restart — suficiente para probar). Con tarjeta cargada:
-# descomentar y crear el volumen: fly volumes create data --region eze --size 1
+# Volumen deshabilitado para el primer deploy: crearlo no se puede desde el
+# dashboard (solo CLI). Los frames viven en disco efímero (se pierden en cada
+# deploy/restart). Para persistencia: fly volumes create data --region eze
+# --size 1, y descomentar:
 # [mounts]
 #   source = "data"
 #   destination = "/data"
@@ -30,12 +31,11 @@ primary_region = "eze"
 [[services]]
   internal_port = 8080
   protocol = "tcp"
-  # MODO TRIAL: auto-stop activo — el trial lo fuerza igual y estira las 2h de
-  # runtime; las requests HTTP despiertan la máquina. Con tarjeta y WebRTC por
-  # UDP real: cambiar a "off" + min_machines_running = 1 (UDP no despierta máquinas).
-  auto_stop_machines = "stop"
+  # Siempre encendida: el tráfico UDP de WebRTC NO puede despertar máquinas
+  # detenidas (solo HTTP lo hace), así que auto-stop rompería el canal principal.
+  auto_stop_machines = "off"
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
   [[services.ports]]
     port = 443
