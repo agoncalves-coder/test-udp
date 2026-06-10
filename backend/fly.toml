@@ -8,7 +8,8 @@
 #   - Una sola máquina (fly scale count 1): señalización y flujo UDP deben caer juntas.
 
 app = "test-udp"
-primary_region = "eze"
+# eze (Buenos Aires) está deprecada en Fly desde 2026 — gru es la más cercana.
+primary_region = "gru"
 
 [build]
   dockerfile = "Dockerfile"
@@ -22,7 +23,7 @@ primary_region = "eze"
 # Volumen deshabilitado para el primer deploy: crearlo no se puede desde el
 # dashboard (solo CLI). Los frames viven en disco efímero (se pierden en cada
 # deploy/restart). Para persistencia: fly volumes create data --region eze
-# --size 1, y descomentar:
+# --size 1 --region gru, y descomentar:
 # [mounts]
 #   source = "data"
 #   destination = "/data"
