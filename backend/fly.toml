@@ -19,17 +19,23 @@ primary_region = "eze"
   STUN_URL = "stun:stun.l.google.com:19302"
   DATA_DIR = "/data"
 
-[mounts]
-  source = "data"
-  destination = "/data"
+# MODO TRIAL: sin volumen (los datos viven en disco efímero y se pierden en
+# cada deploy/restart — suficiente para probar). Con tarjeta cargada:
+# descomentar y crear el volumen: fly volumes create data --region eze --size 1
+# [mounts]
+#   source = "data"
+#   destination = "/data"
 
 # HTTPS: señalización, API REST y fallback WebSocket — TCP (funciona con IPv4 compartida e IPv6)
 [[services]]
   internal_port = 8080
   protocol = "tcp"
-  auto_stop_machines = "off"    # el tráfico UDP no puede auto-arrancar máquinas
+  # MODO TRIAL: auto-stop activo — el trial lo fuerza igual y estira las 2h de
+  # runtime; las requests HTTP despiertan la máquina. Con tarjeta y WebRTC por
+  # UDP real: cambiar a "off" + min_machines_running = 1 (UDP no despierta máquinas).
+  auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 0
 
   [[services.ports]]
     port = 443
