@@ -1,0 +1,57 @@
+# face-capture-poc — backend Go con WebRTC (pion) sobre un único puerto UDP muxeado.
+#
+# Requisitos NO negociables de Fly.io para UDP (ver README, runbook de deploy):
+#   - IPv4 dedicada (fly ips allocate-v4, $2/mes). IPv4 compartida NO recibe UDP.
+#   - El proceso debe bindear UDP a fly-global-services:<puerto> (el código lo hace
+#     automáticamente cuando FLY_APP_NAME está presente).
+#   - Puerto interno UDP == puerto externo (el proxy de Fly no reescribe puertos destino).
+#   - Una sola máquina (fly scale count 1): señalización y flujo UDP deben caer juntas.
+
+app = "face-capture-poc"
+primary_region = "eze"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  HTTP_PORT = "8080"
+  UDP_PORT = "5004"
+  STUN_URL = "stun:stun.l.google.com:19302"
+  DATA_DIR = "/data"
+
+[mounts]
+  source = "data"
+  destination = "/data"
+
+# HTTPS: señalización, API REST y fallback WebSocket — TCP (funciona con IPv4 compartida e IPv6)
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  auto_stop_machines = "off"    # el tráfico UDP no puede auto-arrancar máquinas
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.tcp_checks]]
+    interval = "30s"
+    timeout = "5s"
+
+# WebRTC: ICE/DTLS/SCTP — UDP crudo; requiere IPv4 dedicada; puerto interno == externo
+[[services]]
+  internal_port = 5004
+  protocol = "udp"
+
+  [[services.ports]]
+    port = 5004
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
