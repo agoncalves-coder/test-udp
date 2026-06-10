@@ -13,6 +13,9 @@ backend/data/
 !.env.example
 !frontend/.env.development
 
+# claude session state
+.claude/
+
 # OS / editor
 Thumbs.db
 .DS_Store
