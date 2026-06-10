@@ -27,8 +27,15 @@ func main() {
 
 	mgr := session.NewManager(session.DefaultManagerConfig(cfg.DataDir, ffmpegPath), log)
 
+	engine, err := transport.NewWebRTCEngine(cfg, log)
+	if err != nil {
+		log.Error("webrtc engine init failed", "err", err)
+		os.Exit(1)
+	}
+
 	wsHandler := transport.WSHandler(cfg, mgr, log)
-	handler := httpapi.Handler(cfg, mgr, log, wsHandler, nil)
+	signalHandler := transport.SignalHandler(engine, mgr, log)
+	handler := httpapi.Handler(cfg, mgr, log, wsHandler, signalHandler)
 
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.HTTPPort),
