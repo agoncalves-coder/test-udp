@@ -26,6 +26,9 @@ type SessionStore struct {
 	saved map[uint16]savedFrame
 	// rawH264 persistidos sin decodificar (decodeSkipped en el report)
 	skippedDecode bool
+	// composite generado en la consolidación (fusión temporal de frames)
+	compositeFile   string
+	compositeFrames int
 }
 
 type savedFrame struct {
@@ -96,13 +99,17 @@ type FinalReport struct {
 	Transport     string             `json:"transport"`
 	Report        reassembler.Report `json:"report"`
 	DecodeSkipped bool               `json:"decodeSkipped"`
-	ClientStats   json.RawMessage    `json:"clientStats,omitempty"`
+	// Composite: archivo de la fusión temporal y cuántos frames la componen.
+	Composite       string          `json:"composite,omitempty"`
+	CompositeFrames int             `json:"compositeFrames,omitempty"`
+	ClientStats     json.RawMessage `json:"clientStats,omitempty"`
 }
 
 // WriteReport persiste report.json (puede reescribirse si llegan client-stats
 // después de la consolidación).
 func (s *SessionStore) WriteReport(rep FinalReport) error {
 	rep.DecodeSkipped = s.DecodeSkipped()
+	rep.Composite, rep.CompositeFrames = s.CompositeFile()
 	b, err := json.MarshalIndent(rep, "", "  ")
 	if err != nil {
 		return fmt.Errorf("storage: marshal report: %w", err)

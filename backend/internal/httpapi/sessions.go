@@ -57,6 +57,10 @@ func (s *Server) handleGetSession(w http.ResponseWriter, r *http.Request) {
 	if rep := sess.Report(); rep != nil {
 		resp["report"] = rep
 		resp["decodeSkipped"] = sess.Store.DecodeSkipped()
+		if file, n := sess.Store.CompositeFile(); file != "" {
+			resp["composite"] = "/sessions/" + sess.ID + "/frames/" + file
+			resp["compositeFrames"] = n
+		}
 	}
 	writeJSON(w, http.StatusOK, resp)
 }

@@ -45,10 +45,12 @@ export default function App() {
       .catch(() => setError('No se pudo contactar el backend. ¿Está corriendo?'));
   }, []);
 
-  // Cámara: arranca al montar y al cambiar selfie/trasera (PRD: conmutables).
+  // Cámara: arranca al montar y SOLO se reinicia al cambiar selfie/trasera.
+  // phase no participa: reiniciar el stream en cada transición de fase pisaba
+  // el play() anterior ("play() request was interrupted by a new load").
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || phase === 'results') return;
+    if (!video) return;
     let active = true;
     startCamera(video, facing)
       .then((cam) => {
@@ -64,7 +66,7 @@ export default function App() {
       cameraRef.current?.stop();
       cameraRef.current = null;
     };
-  }, [facing, phase]);
+  }, [facing]);
 
   const capture = useCallback(async () => {
     const video = videoRef.current;
@@ -162,14 +164,15 @@ export default function App() {
       <h1>face-capture-poc</h1>
       {error && <p className="error">{error}</p>}
 
-      {phase !== 'results' && (
-        <>
-          <CameraView
-            ref={videoRef}
-            facing={facing}
-            disabled={busy}
-            onToggleFacing={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
-          />
+      {/* Siempre montado: el efecto de cámara vive atado al <video>; en
+          resultados solo se oculta (display:none) sin soltar el stream. */}
+      <div className={phase === 'results' ? 'hidden' : ''}>
+        <CameraView
+          ref={videoRef}
+          facing={facing}
+          disabled={busy}
+          onToggleFacing={() => setFacing((f) => (f === 'user' ? 'environment' : 'user'))}
+        />
           {features && (
             <ExperimentPicker
               presets={presets}
@@ -193,8 +196,7 @@ export default function App() {
             {phase === 'uploading' && 'Enviando…'}
           </button>
           {channel && busy && <p className="channel">canal: {channel}</p>}
-        </>
-      )}
+      </div>
 
       {phase === 'results' && sessionId && (
         <Results sessionId={sessionId} channel={channel} capture={captureResult} onReset={reset} />

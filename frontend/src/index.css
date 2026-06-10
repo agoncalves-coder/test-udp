@@ -26,6 +26,10 @@ h1 {
   color: #aaa;
 }
 
+.hidden {
+  display: none;
+}
+
 .error {
   background: #5c1a1a;
   border: 1px solid #a33;
@@ -147,6 +151,25 @@ button {
 .metrics dd {
   margin: 0;
   font-variant-numeric: tabular-nums;
+}
+
+.composite {
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.composite img {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 12px;
+  border: 2px solid #4ade80;
+  image-rendering: auto;
+}
+
+.composite figcaption {
+  font-size: 0.8rem;
+  color: #4ade80;
+  margin-top: 4px;
 }
 
 .thumbs {

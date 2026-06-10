@@ -50,6 +50,9 @@ export interface SessionState {
   };
   report?: Report;
   decodeSkipped?: boolean;
+  /** URL de la imagen compuesta (fusión temporal de frames), si se generó. */
+  composite?: string;
+  compositeFrames?: number;
 }
 
 export interface FrameEntry {

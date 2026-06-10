@@ -113,6 +113,14 @@ func (s *Session) finalizeOnce() {
 	s.report = &rep
 	s.mu.Unlock()
 
+	// Fusión temporal de los frames completos (imagen más nítida, menos
+	// ruido). Best-effort: sin frames decodificados no hay composite.
+	if rep.FramesComplete > 0 {
+		if _, err := s.Store.Composite(); err != nil {
+			s.log.Warn("composite failed", "sessionId", s.ID, "err", err)
+		}
+	}
+
 	s.persistReport()
 	close(s.done)
 	s.log.Info("session finalized", "sessionId", s.ID,

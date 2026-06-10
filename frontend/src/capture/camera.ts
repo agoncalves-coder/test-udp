@@ -28,7 +28,16 @@ export async function startCamera(
   });
 
   video.srcObject = stream;
-  await video.play();
+  try {
+    await video.play();
+  } catch (e) {
+    // "The play() request was interrupted by a new load request": carrera
+    // benigna al cambiar de cámara rápido; autoPlay retoma solo.
+    if (!(e instanceof DOMException && e.name === 'AbortError')) {
+      stream.getTracks().forEach((t) => t.stop());
+      throw e;
+    }
+  }
 
   const settings = stream.getVideoTracks()[0]?.getSettings() ?? {};
   return {

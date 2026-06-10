@@ -87,6 +87,15 @@ export function Results({ sessionId, channel, capture, onReset }: Props) {
         </span>
       </h2>
 
+      {session?.composite && (
+        <figure className="composite">
+          <img src={frameUrl(session.composite)} alt="imagen compuesta" />
+          <figcaption>
+            Compuesta: alineación + mediana de {session.compositeFrames} frames (más nítida, menos ruido)
+          </figcaption>
+        </figure>
+      )}
+
       <dl className="metrics">
         <dt>Canal</dt>
         <dd>{channel}</dd>
